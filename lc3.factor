@@ -30,7 +30,16 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 :: cpos? ( -- x )  cnd get-global 1 = ;
 :: czero? ( -- x ) cnd get-global 2 = ;
 
-:: instr-br ( instr -- ) ;
+: get-pc ( -- pc ) pc get-global ;
+: set-pc ( v -- ) pc set-global ;
+: pc-incr ( step -- ) get-pc u16+ set-pc ;
+
+:: instr-br ( instr -- )
+    instr <nzp
+    cnd get-global
+    bitand 0 = [
+        instr 9 <pc-offset pc-incr
+    ] unless ;
 
 :: instr-op-normal ( instr quot -- )
     instr 11 9 bit-range         ! DR

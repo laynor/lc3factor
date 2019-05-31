@@ -118,3 +118,44 @@ IN: lc3.tests
     0 10 >lea instr-lea
     0 reg-get
 ] unit-test
+
+! test BRn
+{ 20 } [                        ! BRn vs -
+    setup
+    14 pc set-global
+    4 cnd set-global
+    1 0 0 6 >br instr-br
+    pc get-global
+] unit-test
+
+{ 14 } [
+    setup
+    14 pc set-global
+    2 cnd set-global
+    1 0 1 6 >br instr-br        ! BRnp vs 0
+    pc get-global
+] unit-test
+
+{ 20 } [
+    setup                       ! BRnp vs p
+    14 pc set-global
+    1 cnd set-global
+    1 0 1 6 >br instr-br
+    pc get-global
+] unit-test
+
+{ 20 } [
+    setup                       ! BRzp vs 0
+    14 pc set-global
+    2 cnd set-global
+    0 1 1 6 >br instr-br
+    pc get-global
+] unit-test
+
+{ 20 } [
+    setup                       ! BRzp vs p
+    14 pc set-global
+    1 cnd set-global
+    0 1 1 6 >br instr-br
+    pc get-global
+] unit-test

@@ -25,11 +25,12 @@ IN: lc3.instrs
 
 : <immediate ( instr n -- immediate-n ) <pc-offset ;
 
-: >nzp ( sign -- nzp )
-    1 { { [ dup 0 > ] [ drop 9 ] }
-        { [ dup 0 = ] [ drop 10 ] }
-        { [ dup 0 < ] [ drop 11 ] }
-    } cond shift ;
+:: >nzp ( n z p -- nzp )
+    n 4 *
+    z 2 * bitor
+    p bitor 9 shift ;
+
+: <nzp ( instr -- nzp ) 11 9 bit-range ;
 
 :: >add ( DR SR1 SR2 -- instr )
     1   >opcode
@@ -57,9 +58,9 @@ IN: lc3.instrs
     1 5 shift bitor             ! immediate flag
     5 IMM5 >immediate bitor ;
 
-:: >br ( SIGN OFF9 -- instr )
+:: >br ( N Z P OFF9 -- instr )
     0      >opcode
-    SIGN   >nzp bitor
+    N Z P  >nzp bitor
     9 OFF9 >pc-offset bitor ;
 
 :: >jmp ( BASER -- instr )
