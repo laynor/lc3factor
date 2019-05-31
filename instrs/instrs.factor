@@ -1,70 +1,116 @@
-USING: arrays combinators.smart formatting io kernel locals math math.bitwise
-namespaces sequences ;
+USING: arrays combinators combinators.smart formatting io kernel locals math
+math.bitwise namespaces sequences ;
 IN: lc3.instrs
 
+: >opcode ( opcode -- bitmask ) 12 shift ;
+
+: >dr ( reg -- bitmask ) 9 shift ;
+: >sr ( reg -- bitmask ) >dr ;
+
+: >sr1 ( reg -- bitmask  ) 6 shift ;
+: >baser ( reg -- bitmask  ) >sr1 ;
+
+! TODO clip (negative) bitfields!
+: >immediate ( n imm -- immn ) swap drop ;
+: >pc-offset ( n off -- offn ) >immediate ;
+
+: >nzp ( sign -- nzp )
+    1 { { [ dup 0 > ] [ drop 9 ] }
+        { [ dup 0 = ] [ drop 10 ] }
+        { [ dup 0 < ] [ drop 11 ] }
+    } cond shift ;
+
 :: >add ( DR SR1 SR2 -- instr )
-    1 12 shift                  ! opcode
-    DR 9 shift bitor
-    SR1 6 shift bitor
+    1   >opcode
+    DR  >dr bitor
+    SR1 >sr1 bitor
     SR2 bitor ;
 
-
-:: >addi ( DR SR IMM5 -- instr )
-    1 12 shift                  ! opcode
-    DR 9 shift bitor
-    SR 6 shift bitor
-    1 5 shift bitor             ! immediate flag
-    IMM5 bitor ;
-
+:: >addi ( DR SR1 IMM5 -- instr )
+    1      >opcode
+    DR     >dr bitor
+    SR1    >sr1 bitor
+           1 5 shift bitor      ! immediate flag
+    5 IMM5 >immediate bitor ;
 
 :: >and ( DR SR1 SR2 -- instr )
-    5 12 shift                  ! opcode
-    DR 9 shift bitor
-    SR1 6 shift bitor
+    5   >opcode
+    DR  >dr bitor
+    SR1 >sr1 bitor
     SR2 bitor ;
 
-
-:: >andi ( DR SR IMM5 -- instr )
-    5 12 shift                  ! opcode
-    DR 9 shift bitor
-    SR 6 shift bitor
+:: >andi ( DR SR1 IMM5 -- instr )
+    5      >opcode                  ! opcode
+    DR     >dr bitor
+    SR1    >sr1 bitor
     1 5 shift bitor             ! immediate flag
-    IMM5 bitor ;
+    5 IMM5 >immediate bitor ;
+
+:: >br ( SIGN OFF9 -- instr )
+    0      >opcode
+    SIGN   >nzp bitor
+    9 OFF9 >pc-offset bitor ;
+
+:: >jmp ( BASER -- instr )
+    12    >opcode
+    BASER >baser bitor ;
+
+:: >jsr ( OFF11 -- instr )
+    4        >opcode
+    1 11 shift bitor
+    11 OFF11 >pc-offset bitor ;
+
+:: >jsrr ( BASER -- instr )
+    4     >opcode
+    BASER >baser bitor ;
 
 :: >ld ( DR OFF9 -- instr )
-    2 12 shift                  ! opcode
-    DR 9 shift bitor
-    OFF9 bitor ;
-
-:: >ldr ( DR BASER OFF6 -- instr )
-    6 12 shift
-    DR 9 shift bitor
-    BASER 6 shift bitor
-    OFF6 bitor ;
-
-:: >st ( SR OFF9 -- instr )
-    3 12 shift                  ! opcode
-    SR 9 shift bitor
-    OFF9 bitor ;
-
-:: >str ( SR BASER OFF6 -- instr )
-    7 12 shift
-    SR 9 shift bitor
-    BASER 6 shift bitor
-    OFF6 bitor ;
-
-:: >not ( DR SR -- instr )
-    9 12 shift
-    DR 9 shift bitor
-    SR 6 shift bitor
-    0x3F bitor ;
+    2      >opcode                  ! opcode
+    DR     >dr bitor
+    9 OFF9 >pc-offset bitor ;
 
 :: >ldi ( DR OFF9 -- instr )
-    10 12 shift
-    DR 9 shift bitor
-    OFF9 bitor ;
+    10     >opcode
+    DR     >dr bitor
+    9 OFF9 >pc-offset bitor ;
+
+:: >ldr ( DR BASER OFF6 -- instr )
+    6      >opcode
+    DR     >dr bitor
+    BASER  >baser bitor
+    6 OFF6 >pc-offset bitor ;
+
+:: lea ( DR OFF9 -- instr )
+    14     >opcode
+    DR     >dr bitor
+    9 OFF9 >pc-offset bitor ;
+
+:: >not ( DR SR1 -- instr )
+    9   >opcode
+    DR  >dr bitor
+    SR1 >sr1 bitor
+    0x3F bitor ;
+
+: >ret ( -- instr ) 7 >jmp ;
+
+: >rti ( -- instr ) 8 >opcode ;
+
+:: st ( SR OFF9 -- instr )
+    3      >opcode
+    SR     >sr bitor
+    9 OFF9 >pc-offset bitor ;
 
 :: >sti ( SR OFF9 -- instr )
-    11 12 shift
-    SR 9 shift bitor
-    OFF9 bitor ;
+    11     >opcode
+    SR     >sr bitor
+    9 OFF9 >pc-offset bitor ;
+
+:: >str ( SR BASER OFF6 -- instr )
+    7      >opcode
+    SR     >sr bitor
+    BASER  >baser bitor
+    6 OFF6 >pc-offset bitor ;
+
+:: >trap ( trapvect8 -- )
+    15 >opcode
+    trapvect8 bitor ;
