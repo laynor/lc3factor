@@ -75,12 +75,14 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 
 :: instr-jsr ( instr -- ) ;
 
-:: instr-ldr ( instr -- )
-    instr 11 9 bit-range dup          ! DR DR (for set-cnd)
-    instr 8 6 bit-range reg-get       ! DR BASER-value
-    instr 5 0 bit-range 5 sign-extend ! DR BASER-value OFF6;
-    u16+                              ! DR ADDR
-    reg<mem                           ! --
+: instr-ldr ( instr -- )
+    {
+        [ <dr dup ]             ! DR DR (for set-cnd)
+        [ <baser reg-get ]      ! DR BASER-value
+        [ 6 <pc-offset ]        ! DR BASER-value OFF6;
+    } cleave
+    u16+                        ! DR ADDR
+    reg<mem                     ! --
     set-cnd
     ;
 
