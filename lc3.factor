@@ -124,7 +124,14 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 
 :: instr-jmp ( instr -- ) ;
 :: instr-res ( instr -- ) ;
-:: instr-lea ( instr -- ) ;
+
+: instr-lea ( instr -- )
+    { [ <dr dup ] [ 9 <pc-offset ] } cleave
+    pc get-global
+    u16+
+    reg-set
+    set-cnd ;
+
 :: instr-trap ( instr -- ) ;
 
 

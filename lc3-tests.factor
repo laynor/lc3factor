@@ -111,3 +111,10 @@ IN: lc3.tests
     10 mem-get
 ] unit-test
 
+! test lea
+{ 15 } [
+    setup
+    5 pc set-global
+    0 10 >lea instr-lea
+    0 reg-get
+] unit-test
