@@ -86,15 +86,18 @@ IN: lc3.tests
 ! test ldi
 { 15 } [
     setup
+    20 10 mem-set
     10 15 mem-set
-    0 10 >ldi instr-ldi
+    0 20 >ldi instr-ldi
     0 reg-get
 ] unit-test
 
 { 15 } [
     setup
+    20 10 mem-set
     10 15 mem-set
     1 pc set-global
-    0 9 >ldi instr-ldi
+    0 19 >ldi instr-ldi
     0 reg-get
 ] unit-test
+
