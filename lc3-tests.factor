@@ -101,3 +101,13 @@ IN: lc3.tests
     0 reg-get
 ] unit-test
 
+! test sti
+{ 15 } [
+    setup
+    0 15 reg-set
+    20 10 mem-set
+    1 pc set-global
+    0 19 >sti instr-sti
+    10 mem-get
+] unit-test
+

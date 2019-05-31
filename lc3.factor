@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: arrays combinators.smart formatting io kernel locals math math.bitwise
-namespaces sequences lc3.instrs ;
+namespaces sequences lc3.instrs combinators ;
 
 IN: lc3
 
@@ -38,6 +38,17 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 : reg<mem ( reg addr -- ) mem-get reg-set ;
 : mem<reg ( addr reg -- ) reg-get mem-set ;
 
+: set-cnd ( DR -- )
+    reg-get {
+        { [ dup 0 < ] [ drop 4 ] }
+        { [ dup 0 = ] [ drop 2 ] }
+        { [ dup 0 > ] [ drop 1 ] }
+    } cond cnd set-global ;
+
+:: cneg? ( -- x ) cnd get-global 4 = ;
+:: cpos? ( -- x ) cnd get-global 1 = ;
+:: czero? ( -- x ) cnd get-global 2 = ;
+
 :: instr-br ( instr -- ) ;
 
 :: instr-op-normal ( instr quot -- )
@@ -60,16 +71,19 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     instr 5 nth-bit 0 =
         [ instr quot instr-op-normal ]
         [ instr quot instr-op-immediate ]
-    if ;
+    if
+    instr 11 9 bit-range set-cnd ;
 
 :: instr-add ( instr -- ) instr [ u16+ ] instr-op ;
 :: instr-and ( instr -- ) instr [ bitand ] instr-op ;
 
 :: instr-ld ( instr -- )
     instr 11 9 bit-range              ! DR
+    dup
     instr 8 0 bit-range 8 sign-extend ! OFFSET9
     pc get-global u16+
-    reg<mem ;
+    reg<mem
+    set-cnd ;
 
 :: instr-st ( instr -- )
     instr 8 0 bit-range 8 sign-extend ! OFFSET9
@@ -81,11 +95,12 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 :: instr-jsr ( instr -- ) ;
 
 :: instr-ldr ( instr -- )
-    instr 11 9 bit-range              ! DR
+    instr 11 9 bit-range dup          ! DR DR (for set-cnd)
     instr 8 6 bit-range reg-get       ! DR BASER-value
     instr 5 0 bit-range 5 sign-extend ! DR BASER-value OFF6;
     u16+                              ! DR ADDR
     reg<mem                           ! --
+    set-cnd
     ;
 
 :: instr-str ( instr -- )
@@ -105,12 +120,14 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     reg-set ;
 
 :: instr-ldi ( instr -- )
-    instr 11 9 bit-range              ! DR
+    instr 11 9 bit-range dup          ! DR DR (for set-cnd)
+
     instr 8 0 bit-range 8 sign-extend ! OFF9
     pc get-global u16+                ! PC+OFF9
     mem-get                           ! mem(PC+OFF9)
 
     reg<mem                           ! DR <- mem(mem(PC+OFF9))
+    set-cnd
     ;
 
 :: instr-sti ( instr -- ) ;
