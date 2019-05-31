@@ -2,32 +2,13 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: arrays combinators.smart formatting io kernel locals math math.bitwise
-namespaces sequences lc3.instrs combinators ;
+namespaces sequences lc3.instrs lc3.utils combinators ;
 
 IN: lc3
 
 SYMBOLS: mem regs pc cnd instr-routines ;
 
-: uint16-max ( -- y ) 0x10000 ;
-: mem-size  ( -- y ) uint16-max ;
-
-
-
-:: mask ( msb -- mask ) uint16-max 1 - msb 16 shift-mod ;
-
-:: nth-bit ( value n -- b ) value n n bit-range ;
-
-:: sign-extend ( value msb -- sextvalue )
-    msb mask ! bitmask
-    value msb nth-bit *
-    value bitor ;
-
-
-: u16mod ( x -- y ) uint16-max mod uint16-max + uint16-max mod ;
-: u16+ ( x y -- x+y ) + u16mod ;
-: u16* ( x y -- x*y ) * u16mod ;
-: u16- ( x y -- x-y ) - u16mod ;
-: u16/ ( x y -- x/y ) / u16mod ;
+: mem-size  ( -- y ) 2^16 ;
 
 : reg-get ( reg -- value ) regs get-global nth ;
 :: reg-set ( n val -- ) val n regs get-global set-nth ;

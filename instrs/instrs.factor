@@ -1,18 +1,29 @@
 USING: arrays combinators combinators.smart formatting io kernel locals math
-math.bitwise namespaces sequences ;
+math.bitwise namespaces sequences lc3.utils ;
 IN: lc3.instrs
 
 : >opcode ( opcode -- bitmask ) 12 shift ;
 
 : >dr ( reg -- bitmask ) 9 shift ;
 : >sr ( reg -- bitmask ) >dr ;
+: <dr ( instr -- dr ) 11 9 bit-range ;
+: <sr ( instr -- sr ) >dr ;
 
 : >sr1 ( reg -- bitmask  ) 6 shift ;
 : >baser ( reg -- bitmask  ) >sr1 ;
+: <sr1 ( instr -- sr1 ) 8 6 bit-range ;
+: <baser ( instr -- basr ) 8 6 bit-range ;
+
+: <sr2 ( instr -- sr2 ) 2 0 bit-range ;
 
 ! TODO clip (negative) bitfields!
 : >immediate ( n imm -- immn ) swap drop ;
 : >pc-offset ( n off -- offn ) >immediate ;
+:: <pc-offset ( instr n -- offset-n )
+    n 1 - :> msb
+    instr msb 0 bit-range msb sign-extend ;
+
+: <immediate ( instr n -- immediate-n ) <pc-offset ;
 
 : >nzp ( sign -- nzp )
     1 { { [ dup 0 > ] [ drop 9 ] }
@@ -80,7 +91,7 @@ IN: lc3.instrs
     BASER  >baser bitor
     6 OFF6 >pc-offset bitor ;
 
-:: lea ( DR OFF9 -- instr )
+:: >lea ( DR OFF9 -- instr )
     14     >opcode
     DR     >dr bitor
     9 OFF9 >pc-offset bitor ;
@@ -95,7 +106,7 @@ IN: lc3.instrs
 
 : >rti ( -- instr ) 8 >opcode ;
 
-:: st ( SR OFF9 -- instr )
+:: >st ( SR OFF9 -- instr )
     3      >opcode
     SR     >sr bitor
     9 OFF9 >pc-offset bitor ;
@@ -111,6 +122,6 @@ IN: lc3.instrs
     BASER  >baser bitor
     6 OFF6 >pc-offset bitor ;
 
-:: >trap ( trapvect8 -- )
+:: >trap ( TRAPVECT8 -- instr )
     15 >opcode
-    trapvect8 bitor ;
+    TRAPVECT8 bitor ;
