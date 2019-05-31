@@ -130,7 +130,15 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     set-cnd
     ;
 
-:: instr-sti ( instr -- ) ;
+:: instr-sti ( instr -- )
+    instr 8 0 bit-range 8 sign-extend ! OFF9
+    pc get-global u16+                ! OFF9+PC
+    mem-get                           ! mem(OFF9+PC)
+
+    instr 11 9 bit-range              ! SRval
+    mem<reg                           ! mem(mem(OFF9+PC)) <- SRval
+    ;
+
 :: instr-jmp ( instr -- ) ;
 :: instr-res ( instr -- ) ;
 :: instr-lea ( instr -- ) ;
