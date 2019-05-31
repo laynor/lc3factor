@@ -45,8 +45,8 @@ SYMBOLS: mem regs pc cnd instr-routines ;
         { [ dup 0 > ] [ drop 1 ] }
     } cond cnd set-global ;
 
-:: cneg? ( -- x ) cnd get-global 4 = ;
-:: cpos? ( -- x ) cnd get-global 1 = ;
+:: cneg? ( -- x )  cnd get-global 4 = ;
+:: cpos? ( -- x )  cnd get-global 1 = ;
 :: czero? ( -- x ) cnd get-global 2 = ;
 
 :: instr-br ( instr -- ) ;
@@ -54,7 +54,7 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 :: instr-op-normal ( instr quot -- )
     instr 11 9 bit-range         ! DR
     instr 8 6  bit-range reg-get ! SR1
-    instr 2 0 bit-range reg-get  ! SR2
+    instr 2 0  bit-range reg-get ! SR2
     quot call( x y -- z )        ! RES
     reg-set                      ! set
     ;
