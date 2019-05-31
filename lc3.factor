@@ -107,8 +107,10 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 :: instr-ldi ( instr -- )
     instr 11 9 bit-range              ! DR
     instr 8 0 bit-range 8 sign-extend ! OFF9
-    pc get-global u16+
-    reg<mem
+    pc get-global u16+                ! PC+OFF9
+    mem-get                           ! mem(PC+OFF9)
+
+    reg<mem                           ! DR <- mem(mem(PC+OFF9))
     ;
 
 :: instr-sti ( instr -- ) ;
