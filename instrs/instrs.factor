@@ -7,7 +7,7 @@ IN: lc3.instrs
 : >dr ( reg -- bitmask ) 9 shift ;
 : >sr ( reg -- bitmask ) >dr ;
 : <dr ( instr -- dr ) 11 9 bit-range ;
-: <sr ( instr -- sr ) >dr ;
+: <sr ( instr -- sr ) <dr ;
 
 : >sr1 ( reg -- bitmask  ) 6 shift ;
 : >baser ( reg -- bitmask  ) >sr1 ;
