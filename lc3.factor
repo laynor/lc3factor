@@ -106,10 +106,9 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 
 :: instr-rti ( instr -- ) ;
 
-:: instr-not ( instr -- )
-    instr 11 9 bit-range               ! DR
-    instr 8 6 bit-range reg-get bitnot ! not SR
-    u16mod                             ! uint16
+: instr-not ( instr -- )
+    { [ <dr ]
+      [ <sr1 reg-get bitnot u16mod ] } cleave
     reg-set ;
 
 :: instr-ldi ( instr -- )
