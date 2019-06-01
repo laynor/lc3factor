@@ -26,9 +26,10 @@ SYMBOLS: mem regs pc cnd instr-routines ;
         { [ dup 0 > ] [ drop 1 ] }
     } cond cnd set-global ;
 
-:: cneg? ( -- x )  cnd get-global 4 = ;
-:: cpos? ( -- x )  cnd get-global 1 = ;
-:: czero? ( -- x ) cnd get-global 2 = ;
+: get-cnd ( -- cnd ) cnd get-global ;
+: cneg? ( -- x )  get-cnd 4 = ;
+: cpos? ( -- x )  get-cnd 1 = ;
+: czero? ( -- x ) get-cnd 2 = ;
 
 : get-pc ( -- pc ) pc get-global ;
 : set-pc ( v -- ) pc set-global ;
@@ -36,23 +37,23 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 
 :: instr-br ( instr -- )
     instr <nzp
-    cnd get-global
+    get-cnd
     bitand 0 = [
         instr 9 <pc-offset pc-incr
     ] unless ;
 
 :: instr-op-normal ( instr quot -- )
-    instr 11 9 bit-range         ! DR
-    instr 8 6  bit-range reg-get ! SR1
-    instr 2 0  bit-range reg-get ! SR2
+    instr <dr                    ! DR
+    instr <sr1 reg-get           ! SR1
+    instr <sr2 reg-get           ! SR2
     quot call( x y -- z )        ! RES
     reg-set                      ! set
     ;
 
 :: instr-op-immediate ( instr quot -- )
-    instr 11 9 bit-range              ! DR
-    instr 8 6  bit-range reg-get      ! SR value
-    instr 4 0 bit-range 4 sign-extend ! immediate value
+    instr <dr                         ! DR
+    instr <sr1 reg-get                ! SR1 value
+    instr 5 <immediate                ! immediate value
     quot call( x y -- z )             ! result
     reg-set                           ! set
     ;
@@ -68,17 +69,17 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 :: instr-and ( instr -- ) instr [ bitand ] instr-op ;
 
 :: instr-ld ( instr -- )
-    instr 11 9 bit-range              ! DR
+    instr <dr                   ! DR
     dup
-    instr 8 0 bit-range 8 sign-extend ! OFFSET9
-    pc get-global u16+
+    instr 9 <pc-offset          ! OFFSET9
+    get-pc u16+
     reg<mem
     set-cnd ;
 
 :: instr-st ( instr -- )
-    instr 8 0 bit-range 8 sign-extend ! OFFSET9
-    pc get-global u16+
-    instr 11 9 bit-range              ! SR
+    instr 9 <pc-offset          ! OFFSET9
+    get-pc u16+                 ! PC + OFFSET9
+    instr <sr                   ! SR
     mem<reg ;
 
 
@@ -112,23 +113,23 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     reg-set ;
 
 :: instr-ldi ( instr -- )
-    instr 11 9 bit-range dup          ! DR DR (for set-cnd)
+    instr <dr dup               ! DR DR (for set-cnd)
 
-    instr 8 0 bit-range 8 sign-extend ! OFF9
-    pc get-global u16+                ! PC+OFF9
-    mem-get                           ! mem(PC+OFF9)
+    instr 9 <pc-offset          ! OFF9
+    get-pc u16+                 ! PC+OFF9
+    mem-get                     ! mem(PC+OFF9)
 
-    reg<mem                           ! DR <- mem(mem(PC+OFF9))
+    reg<mem                     ! DR <- mem(mem(PC+OFF9))
     set-cnd
     ;
 
 :: instr-sti ( instr -- )
-    instr 8 0 bit-range 8 sign-extend ! OFF9
-    pc get-global u16+                ! OFF9+PC
-    mem-get                           ! mem(OFF9+PC)
+    instr 9 <pc-offset          ! OFF9
+    get-pc u16+                 ! OFF9+PC
+    mem-get                     ! mem(OFF9+PC)
 
-    instr 11 9 bit-range              ! SRval
-    mem<reg                           ! mem(mem(OFF9+PC)) <- SRval
+    instr <sr                   ! SR
+    mem<reg                     ! mem(mem(OFF9+PC)) <- SRval
     ;
 
 :: instr-jmp ( instr -- ) ;
@@ -136,19 +137,18 @@ SYMBOLS: mem regs pc cnd instr-routines ;
 
 : instr-lea ( instr -- )
     { [ <dr dup ] [ 9 <pc-offset ] } cleave
-    pc get-global
+    get-pc
     u16+
     reg-set
     set-cnd ;
 
 :: instr-trap ( instr -- ) ;
 
-
 : setup ( -- )
     mem-size 0 <array> mem set-global
     8 0 <array> regs set-global
-    0 pc set-global
-    0 cnd set-global
+    0 set-pc
+    0 set-cnd
     {
         [ instr-br   ]          ! 0000
         [ instr-add  ]          ! 0001
@@ -169,7 +169,7 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     } instr-routines set-global
     ;
 
-: fetch-instr ( -- instr ) pc get-global mem get-global nth ;
+: fetch-instr ( -- instr ) get-pc mem-get ;
 
 : opcode ( instr -- opc ) -12 shift ;
 
