@@ -112,7 +112,7 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     mem<reg                           ! --
     ;
 
-:: instr-rti ( instr -- ) ;
+:: instr-rti ( instr -- ) "RTI not implemented" throw ;
 
 : instr-not ( instr -- )
     { [ <dr ]
@@ -140,7 +140,8 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     ;
 
 : instr-jmp ( instr -- ) <baser reg-get set-pc ;
-:: instr-res ( instr -- ) ;
+
+:: instr-res ( instr -- ) "RES not implemented" throw ;
 
 : instr-lea ( instr -- )
     { [ <dr dup ] [ 9 <pc-offset ] } cleave
