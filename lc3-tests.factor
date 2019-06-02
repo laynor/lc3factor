@@ -159,3 +159,18 @@ IN: lc3.tests
     0 1 1 6 >br instr-br
     pc get-global
 ] unit-test
+
+! test JMP
+{ 20 } [
+    setup
+    0 20 reg-set
+    0 >jmp instr-jmp
+    get-pc
+] unit-test
+
+{ 20 } [
+    setup
+    1 20 reg-set
+    1 >jmp instr-jmp
+    get-pc
+] unit-test

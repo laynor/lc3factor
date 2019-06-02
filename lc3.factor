@@ -131,7 +131,7 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     mem<reg                     ! mem(mem(OFF9+PC)) <- SRval
     ;
 
-:: instr-jmp ( instr -- ) ;
+: instr-jmp ( instr -- ) <baser reg-get set-pc ;
 :: instr-res ( instr -- ) ;
 
 : instr-lea ( instr -- )
