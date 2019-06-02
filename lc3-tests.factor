@@ -174,3 +174,35 @@ IN: lc3.tests
     1 >jmp instr-jmp
     get-pc
 ] unit-test
+
+! test JSR
+
+{ 120 } [
+    setup
+    20 set-pc
+    100 >jsr instr-jsr
+    get-pc
+] unit-test
+
+{ 20 } [
+    setup
+    20 set-pc
+    100 >jsr instr-jsr
+    7 reg-get
+] unit-test
+
+{ 120 } [
+    setup
+    20 set-pc
+    2 120 reg-set
+    2 >jsrr instr-jsr
+    get-pc
+] unit-test
+
+{ 20 } [
+    setup
+    20 set-pc
+    2 120 reg-set
+    2 >jsrr instr-jsr
+    7 reg-get
+] unit-test

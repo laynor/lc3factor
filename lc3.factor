@@ -83,7 +83,15 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     mem<reg ;
 
 
-:: instr-jsr ( instr -- ) ;
+:: instr-jsri ( instr -- ) instr 11 <pc-offset get-pc u16+ set-pc ;
+:: instr-jsrr ( instr -- ) instr <baser reg-get set-pc ;
+
+:: instr-jsr ( instr -- )
+    7 get-pc reg-set
+    instr 11 11 bit-range 1 =
+      [ instr instr-jsri ]
+      [ instr instr-jsrr ]
+    if ;
 
 : instr-ldr ( instr -- )
     {
