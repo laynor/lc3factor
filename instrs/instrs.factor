@@ -25,6 +25,8 @@ IN: lc3.instrs
 
 : <immediate ( instr n -- immediate-n ) <pc-offset ;
 
+: <trapvect8 ( instr -- trapvect8 ) 7 0 bit-range ;
+
 :: >nzp ( n z p -- nzp )
     n 4 *
     z 2 * bitor

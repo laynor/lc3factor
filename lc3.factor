@@ -6,7 +6,7 @@ namespaces sequences lc3.instrs lc3.utils combinators ;
 
 IN: lc3
 
-SYMBOLS: mem regs pc cnd instr-routines ;
+SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
 
 : mem-size  ( -- y ) 2^16 ;
 
@@ -150,7 +150,19 @@ SYMBOLS: mem regs pc cnd instr-routines ;
     reg-set
     set-cnd ;
 
-:: instr-trap ( instr -- ) ;
+:: trap-getc ( -- ) ;
+:: trap-out ( -- ) ;
+:: trap-puts ( -- )
+    ;
+:: trap-in ( -- ) ;
+:: trap-putsp ( -- ) ;
+:: trap-halt ( -- ) ;
+
+:: instr-trap ( instr -- )
+    instr <trapvect8 0x20 -
+    instr-routines get-global nth
+    call( -- )
+    ;
 
 : setup ( -- )
     mem-size 0 <array> mem set-global
@@ -175,6 +187,14 @@ SYMBOLS: mem regs pc cnd instr-routines ;
         [ instr-lea  ]          ! 1110
         [ instr-trap ]          ! 1111
     } instr-routines set-global
+    {
+        [ trap-getc ]
+        [ trap-out ]
+        [ trap-puts ]
+        [ trap-in ]
+        [ trap-putsp ]
+        [ trap-halt ]
+    }
     ;
 
 : fetch-instr ( -- instr ) get-pc mem-get ;
