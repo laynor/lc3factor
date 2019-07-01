@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: arrays combinators combinators.smart formatting io kernel lc3.instrs
-lc3.utils locals math math.bitwise namespaces sequences strings ;
+lc3.utils locals math math.bitwise namespaces sequences strings curses.ffi ;
 
 IN: lc3
 
@@ -193,13 +193,18 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
 :: write-char ( char -- )
     "" char suffix write ;
 
-:: trap-getc ( -- ) ;
-:: trap-out ( -- ) 0 reg-get 0xFF bitand write-char ;
-:: trap-puts ( -- ) 0 reg-get mem-gets write ;
+: read-blocking ( -- int ) -1 timeout getch ;
 
-:: trap-in ( -- ) ;
-:: trap-putsp ( -- ) 0 reg-get mem-getsp write ;
-:: trap-halt ( -- ) ;
+: read-non-blocking ( -- int ) 0 timeout getch ;
+
+
+: trap-getc ( -- ) 0 read-blocking reg-set ;
+: trap-out ( -- ) "" 0 reg-get 0xFF bitand suffix 0 printw drop ;
+: trap-puts ( -- ) 0 reg-get mem-gets 0 printw drop ;
+
+: trap-in ( -- ) "Enter a character" print trap-getc ;
+: trap-putsp ( -- ) 0 reg-get mem-getsp 0 printw drop ;
+: trap-halt ( -- ) ;
 
 :: instr-trap ( instr -- )
     instr <trapvect8 0x20 -
@@ -262,6 +267,8 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
     ;
 
 : main ( -- )
+    initscr drop
     setup
     main-loop
+    endwin drop
     ;
