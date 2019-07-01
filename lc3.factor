@@ -190,8 +190,11 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
     ""
     [ concat-chars-sp ] reduce ;
 
+:: write-char ( char -- )
+    "" char suffix write ;
+
 :: trap-getc ( -- ) ;
-:: trap-out ( -- ) ;
+:: trap-out ( -- ) 0 reg-get 0xFF bitand write-char ;
 :: trap-puts ( -- ) 0 reg-get mem-gets write ;
 
 :: trap-in ( -- ) ;
