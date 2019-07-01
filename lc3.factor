@@ -192,10 +192,10 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
 
 :: trap-getc ( -- ) ;
 :: trap-out ( -- ) ;
-:: trap-puts ( -- )
-    ;
+:: trap-puts ( -- ) 0 reg-get mem-gets write ;
+
 :: trap-in ( -- ) ;
-:: trap-putsp ( -- ) ;
+:: trap-putsp ( -- ) 0 reg-get mem-getsp write ;
 :: trap-halt ( -- ) ;
 
 :: instr-trap ( instr -- )
