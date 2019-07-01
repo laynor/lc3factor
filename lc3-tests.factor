@@ -216,3 +216,12 @@ IN: lc3.tests
 
     0x0 mem-gets
 ] unit-test
+
+{ "ABCDE" } [
+    0x0 0x4142 mem-set
+    0x1 0x4344 mem-set
+    0x2 0x4500 mem-set
+    0x3 0x0    mem-set
+
+    0x0 mem-getsp
+] unit-test

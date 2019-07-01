@@ -150,6 +150,8 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
     reg-set
     set-cnd ;
 
+! get a string starting from memory address addr.
+! characters are stored sequentially, one char per memory location
 :: mem-gets ( addr -- string )
     0 ! from
     0 addr mem get-global index-from  ! index of next 0
@@ -158,7 +160,35 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
     >string
     ;
 
-:: mem-getsp ( addr -- string ) "foo" ;
+:: first-byte-zero? ( val -- res )
+    val -8 shift 0 = ;
+
+:: last-byte-zero? ( val -- res )
+    val 0xFF bitand 0 = ;
+
+:: end-of-string-sp? ( val -- res )
+    val first-byte-zero?
+    val last-byte-zero?
+    or ;
+
+:: concat-chars-sp ( str val -- res )
+    [let val -8 shift :> char1 val 0xFF bitand :> char2
+     {
+         { [ char1 0 = ] [ str ] }
+         { [ char2 0 = ] [ str char1 suffix ] }
+         [ str char1 suffix char2 suffix ]
+     } cond ] ;
+
+:: find-eos-sp ( start -- index )
+    start mem get-global [ end-of-string-sp? ] find-from drop 1 + ;
+
+! get a string starting from memory address addr.
+! characters are stored sequentially, two chars per memory location
+! 0x6566 -> AB
+:: mem-getsp ( addr -- string )
+    addr addr find-eos-sp mem get-global <slice>  ! sequence
+    ""
+    [ concat-chars-sp ] reduce ;
 
 :: trap-getc ( -- ) ;
 :: trap-out ( -- ) ;
