@@ -1,8 +1,8 @@
 ! Copyright (C) 2019 Alessandro Piras.
 ! See http://factorcode.org/license.txt for BSD license.
 
-USING: arrays combinators.smart formatting io kernel locals math math.bitwise
-namespaces sequences lc3.instrs lc3.utils combinators ;
+USING: arrays combinators combinators.smart formatting io kernel lc3.instrs
+lc3.utils locals math math.bitwise namespaces sequences strings ;
 
 IN: lc3
 
@@ -149,6 +149,16 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
     u16+
     reg-set
     set-cnd ;
+
+:: mem-gets ( addr -- string )
+    0 ! from
+    0 addr mem get-global index-from  ! index of next 0
+    mem get-global
+    <slice>
+    >string
+    ;
+
+:: mem-getsp ( addr -- string ) "foo" ;
 
 :: trap-getc ( -- ) ;
 :: trap-out ( -- ) ;

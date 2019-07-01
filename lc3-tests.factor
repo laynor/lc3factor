@@ -206,3 +206,13 @@ IN: lc3.tests
     2 >jsrr instr-jsr
     7 reg-get
 ] unit-test
+
+{ "ABC" } [
+    setup
+    0x0 65 mem-set
+    0x1 66 mem-set
+    0x2 67 mem-set
+    0x3 0 mem-set
+
+    0x0 mem-gets
+] unit-test
