@@ -194,7 +194,7 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
         [ trap-in ]
         [ trap-putsp ]
         [ trap-halt ]
-    }
+    } trap-routines set-global
     ;
 
 : fetch-instr ( -- instr ) get-pc mem-get ;
