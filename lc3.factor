@@ -2,25 +2,42 @@
 ! See http://factorcode.org/license.txt for BSD license.
 
 USING: arrays combinators combinators.smart formatting io kernel lc3.instrs
-lc3.utils locals math math.bitwise namespaces sequences strings curses.ffi ;
+lc3.utils locals math math.bitwise namespaces sequences strings curses.ffi
+threads calendar  ;
 
 IN: lc3
 
-SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
+SYMBOLS: mem regs pc cnd instr-routines trap-routines is-running ;
 
 : mem-size  ( -- y ) 2^16 ;
+: kbdsr     ( -- kbdsr-addr ) 0xFE00 ;
 
 : reg-get ( reg -- value ) regs get-global nth ;
 :: reg-set ( n val -- ) val n regs get-global set-nth ;
 
-: mem-get ( addr -- val ) mem get-global nth ;
 :: mem-set ( addr val -- ) val addr mem get-global set-nth ;
+
+: check-key ( -- )
+    [let read-non-blocking :> ch
+     ch -1 =
+     [ kbdsr 0  mem-set ]
+     [ kbdsr ch mem-set ] if ] ;
+
+
+: mmio-update ( addr -- )
+    {
+        { [ dup kbdsr = ] [ drop check-key ] }
+        [ drop ]
+    } cond ;
+
+: mem-get ( addr -- val )
+    dup mmio-update
+    mem get-global nth ;
 
 : reg<mem ( reg addr -- ) mem-get reg-set ;
 : mem<reg ( addr reg -- ) reg-get mem-set ;
 
-: set-cnd ( DR -- )
-    reg-get {
+: set-cnd ( DR -- ) reg-get {
         { [ dup 0 < ] [ drop 4 ] }
         { [ dup 0 = ] [ drop 2 ] }
         { [ dup 0 > ] [ drop 1 ] }
@@ -193,18 +210,13 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
 :: write-char ( char -- )
     "" char suffix write ;
 
-: read-blocking ( -- int ) -1 timeout getch ;
-
-: read-non-blocking ( -- int ) 0 timeout getch ;
-
-
 : trap-getc ( -- ) 0 read-blocking reg-set ;
 : trap-out ( -- ) "" 0 reg-get 0xFF bitand suffix 0 printw drop ;
 : trap-puts ( -- ) 0 reg-get mem-gets 0 printw drop ;
 
 : trap-in ( -- ) "Enter a character" print trap-getc ;
 : trap-putsp ( -- ) 0 reg-get mem-getsp 0 printw drop ;
-: trap-halt ( -- ) ;
+: trap-halt ( -- ) f is-running set-global ;
 
 :: instr-trap ( instr -- )
     instr <trapvect8 0x20 -
@@ -262,9 +274,13 @@ SYMBOLS: mem regs pc cnd instr-routines trap-routines ;
 : exec-instr ( instr -- ) interpret call( -- ) ; inline
 
 : main-loop ( -- )
-    fetch-instr
-    exec-instr
-    ;
+    is-running get-global
+    [ fetch-instr
+      1 pc-incr
+      exec-instr
+      main-loop ]
+    [ "Halted." printw
+      2 seconds sleep ] if ;
 
 : main ( -- )
     initscr drop
